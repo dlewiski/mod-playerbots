@@ -61,6 +61,12 @@ public:
 
     bool Execute(Event event) override;
     bool isPossible() override;
+
+private:
+    // True once the standing follow order has been cleared off this bot's drake
+    // for the current hold. Reset when the bot is released back to formation
+    // flight, so the clear is issued once per hold rather than every tick.
+    bool _holdingPosition = false;
 };
 
 class EoEDrakeAttackAction : public Action

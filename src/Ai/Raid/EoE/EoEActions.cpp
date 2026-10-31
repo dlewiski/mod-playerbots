@@ -244,6 +244,26 @@ bool EoEFlyDrakeAction::Execute(Event /*event*/)
     if (!vehicleBase || !masterVehicle) { return false; }
 
     MotionMaster* mm = vehicleBase->GetMotionMaster();
+
+    // A bot's stay flag never reaches its drake: the generic movement actions are
+    // not vehicle-aware, so they only ever hold the passenger still. Meanwhile the
+    // MoveFollow below installs a persistent generator on the VEHICLE that outlives
+    // this action, which is why dropping the strategy mid-flight does not stop it.
+    // Clear that order off the vehicle here, once per hold, and idle in place.
+    if (botAI->HasStrategy("stay", BOT_STATE_NON_COMBAT))
+    {
+        if (!_holdingPosition)
+        {
+            mm->Clear(false);
+            mm->MoveIdle();
+            vehicleBase->StopMoving();
+            vehicleBase->SendMovementFlagUpdate();
+            _holdingPosition = true;
+        }
+        return false;
+    }
+    _holdingPosition = false;
+
     Unit* boss = AI_VALUE2(Unit*, "find target", "malygos");
     if (boss && false)
     {
